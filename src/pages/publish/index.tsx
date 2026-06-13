@@ -15,28 +15,27 @@ const PublishPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [condition, setCondition] = useState('');
-  const [pickPoint, setPickPoint] = useState<PickPoint>(() => {
-    const app = Taro.getApp();
-    const savedPoint = app.globalData?.selectedPickPoint;
-    if (savedPoint) {
-      return savedPoint;
-    }
-    return mockOrganizations[0].pickPoints[0];
-  });
+  const [pickPoint, setPickPoint] = useState<PickPoint>(mockOrganizations[0].pickPoints[0]);
   const [timeOption, setTimeOption] = useState('');
 
+  useEffect(() => {
+    loadSavedPickPoint();
+  }, []);
+
   useDidShow(() => {
-    const app = Taro.getApp();
-    if (app.globalData?.selectedPickPoint) {
-      setPickPoint(app.globalData.selectedPickPoint);
-      app.globalData.selectedPickPoint = null;
-    }
+    loadSavedPickPoint();
   });
 
-  useEffect(() => {
-    const app = Taro.getApp();
-    app.globalData = app.globalData || {};
-  }, []);
+  const loadSavedPickPoint = () => {
+    try {
+      const savedPoint = Taro.getStorageSync('selectedPickPoint');
+      if (savedPoint) {
+        setPickPoint(savedPoint);
+      }
+    } catch (e) {
+      console.error('[Publish] Failed to load saved pick point:', e);
+    }
+  };
 
   const handleAddPhoto = () => {
     Taro.chooseImage({
@@ -106,10 +105,17 @@ const PublishPage: React.FC = () => {
       userAvatar: 'https://picsum.photos/id/64/200/200'
     };
 
-    const app = Taro.getApp();
-    app.globalData = app.globalData || {};
-    app.globalData.myPublishedItems = app.globalData.myPublishedItems || [];
-    app.globalData.myPublishedItems.unshift(newItem);
+    try {
+      const existingItems = Taro.getStorageSync('myPublishedItems') || [];
+      const updatedItems = [newItem, ...existingItems];
+      Taro.setStorageSync('myPublishedItems', updatedItems);
+      
+      const app = Taro.getApp();
+      app.globalData = app.globalData || {};
+      app.globalData.myPublishedItems = updatedItems;
+    } catch (e) {
+      console.error('[Publish] Failed to save item:', e);
+    }
 
     setTimeout(() => {
       Taro.hideLoading();

@@ -18,10 +18,18 @@ const ProfilePage: React.FC = () => {
   }, []);
 
   const loadMyPublished = () => {
-    const app = Taro.getApp();
-    const globalPublished = app.globalData?.myPublishedItems || [];
-    const allPublished = [...globalPublished, ...mockItems.filter(i => i.status !== '待审核')];
-    setMyPublished(allPublished);
+    try {
+      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
+      const allPublished = [...storageItems, ...mockItems.filter(i => i.status !== '待审核')];
+      setMyPublished(allPublished);
+      
+      const app = Taro.getApp();
+      app.globalData = app.globalData || {};
+      app.globalData.myPublishedItems = storageItems;
+    } catch (e) {
+      console.error('[Profile] Failed to load published items:', e);
+      setMyPublished(mockItems.filter(i => i.status !== '待审核'));
+    }
   };
 
   const userStats = {

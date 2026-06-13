@@ -36,9 +36,11 @@ const PickpointPage: React.FC = () => {
   const handleSelectPoint = (point: PickPoint) => {
     setSelectedPoint(point);
     
-    const app = Taro.getApp();
-    app.globalData = app.globalData || {};
-    app.globalData.selectedPickPoint = point;
+    try {
+      Taro.setStorageSync('selectedPickPoint', point);
+    } catch (e) {
+      console.error('[Pickpoint] Failed to save pick point:', e);
+    }
     
     Taro.showToast({
       title: `已选择: ${point.name}`,

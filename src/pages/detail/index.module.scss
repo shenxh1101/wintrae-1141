@@ -6,6 +6,87 @@
   padding-bottom: 120rpx;
 }
 
+.loadingState {
+  min-height: 100vh;
+  @include flex-center;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  .loadingIcon {
+    font-size: 80rpx;
+  }
+
+  .loadingText {
+    font-size: $font-size-lg;
+    color: $color-text-tertiary;
+  }
+}
+
+.notFoundState {
+  min-height: 100vh;
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-xl;
+  text-align: center;
+
+  .notFoundIcon {
+    font-size: 120rpx;
+    margin-bottom: $spacing-lg;
+  }
+
+  .notFoundTitle {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-sm;
+  }
+
+  .notFoundHint {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-xl;
+  }
+
+  .notFoundActions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    width: 100%;
+    max-width: 400rpx;
+
+    .backBtn {
+      @include button-reset;
+      width: 100%;
+      height: $button-height-md;
+      background: $color-primary;
+      border-radius: $radius-button;
+      color: white;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+
+      &:active {
+        opacity: 0.8;
+      }
+    }
+
+    .homeBtn {
+      @include button-reset;
+      width: 100%;
+      height: $button-height-md;
+      background: white;
+      border: 2rpx solid $color-primary;
+      border-radius: $radius-button;
+      color: $color-primary;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+
+      &:active {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
 .imageSwiper {
   width: 100%;
   height: 600rpx;
@@ -22,11 +103,27 @@
   padding: $spacing-lg;
   margin-bottom: $spacing-sm;
 
-  .title {
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: $color-text-primary;
-    margin-bottom: $spacing-sm;
+  .titleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+
+    .title {
+      flex: 1;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      color: $color-text-primary;
+      margin-right: $spacing-sm;
+    }
+
+    .statusBadge {
+      padding: 4rpx $spacing-sm;
+      border-radius: $radius-xs;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+      white-space: nowrap;
+    }
   }
 
   .tags {
@@ -184,6 +281,13 @@
         opacity: 0.9;
         transform: scale(0.98);
       }
+    }
+
+    &.pending {
+      flex: 1;
+      background: $color-bg-page;
+      color: $color-text-secondary;
+      font-size: $font-size-md;
     }
   }
 }
