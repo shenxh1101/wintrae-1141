@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Item, Organization } from '@/data/mockData';
 import { mockOrganizations } from '@/data/mockData';
+import DataManager from '@/data/dataManager';
 
 type TabType = 'pending' | 'available' | 'completed';
 
@@ -21,17 +22,8 @@ const ProfilePage: React.FC = () => {
   }, []);
 
   const loadMyPublished = () => {
-    try {
-      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
-      setMyPublished([...storageItems]);
-      
-      const app = Taro.getApp();
-      app.globalData = app.globalData || {};
-      app.globalData.myPublishedItems = storageItems;
-    } catch (e) {
-      console.error('[Profile] Failed to load published items:', e);
-      setMyPublished([]);
-    }
+    const items = DataManager.getMyPublishedItems();
+    setMyPublished([...items]);
   };
 
   const filteredItems = myPublished.filter((item) => {
@@ -93,7 +85,19 @@ const ProfilePage: React.FC = () => {
       content: '确定要撤回这个发布吗？撤回后将无法恢复',
       success: (res) => {
         if (res.confirm) {
-          updateItemStatus(itemId, '已下架');
+          DataManager.updatePublishedItem(itemId, { status: '已下架' });
+          setMyPublished([...DataManager.getMyPublishedItems()]);
+          
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '审核',
+            title: '您的物品已下架',
+            content: '您的物品已成功下架，如需重新发布请前往发布页',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: itemId
+          });
+          
           Taro.showToast({
             title: '已撤回',
             icon: 'success'
@@ -111,7 +115,19 @@ const ProfilePage: React.FC = () => {
       content: '确定要下架这个物品吗？下架后将不再对外展示',
       success: (res) => {
         if (res.confirm) {
-          updateItemStatus(itemId, '已下架');
+          DataManager.updatePublishedItem(itemId, { status: '已下架' });
+          setMyPublished([...DataManager.getMyPublishedItems()]);
+          
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '审核',
+            title: '您的物品已下架',
+            content: '您的物品已成功下架，如需重新发布请前往发布页',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: itemId
+          });
+          
           Taro.showToast({
             title: '已下架',
             icon: 'success'
@@ -119,27 +135,6 @@ const ProfilePage: React.FC = () => {
         }
       }
     });
-  };
-
-  const updateItemStatus = (itemId: string, newStatus: string) => {
-    try {
-      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
-      const updatedItems = storageItems.map((item: Item) => {
-        if (item.id === itemId) {
-          return { ...item, status: newStatus };
-        }
-        return item;
-      });
-      
-      Taro.setStorageSync('myPublishedItems', updatedItems);
-      setMyPublished([...updatedItems]);
-      
-      const app = Taro.getApp();
-      app.globalData = app.globalData || {};
-      app.globalData.myPublishedItems = updatedItems;
-    } catch (e) {
-      console.error('[Profile] Failed to update item status:', e);
-    }
   };
 
   const getStatusText = (status: string) => {

@@ -3,7 +3,8 @@ import { View, Text, Image, Swiper, SwiperItem, ScrollView } from '@tarojs/compo
 import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Item, Demand } from '@/data/mockData';
-import { mockItems, mockDemands } from '@/data/mockData';
+import { mockDemands } from '@/data/mockData';
+import DataManager from '@/data/dataManager';
 
 const DetailPage: React.FC = () => {
   const router = useRouter();
@@ -11,6 +12,7 @@ const DetailPage: React.FC = () => {
   const [item, setItem] = useState<Item | null>(null);
   const [demand, setDemand] = useState<Demand | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [currentSwiper, setCurrentSwiper] = useState(0);
 
@@ -21,6 +23,7 @@ const DetailPage: React.FC = () => {
   const loadData = () => {
     setLoading(true);
     setNotFound(false);
+    setIsOffline(false);
     
     const { id, type } = router.params;
     
@@ -34,11 +37,15 @@ const DetailPage: React.FC = () => {
           setNotFound(true);
         }
       } else {
-        const storageItems = Taro.getStorageSync('myPublishedItems') || [];
-        const foundItem = [...storageItems, ...mockItems].find(i => i.id === id);
+        const foundItem = DataManager.getPublishedItem(id);
         
         if (foundItem) {
-          setItem(foundItem);
+          if (foundItem.status === '已下架') {
+            setItem(foundItem);
+            setIsOffline(true);
+          } else {
+            setItem(foundItem);
+          }
           setDemand(null);
         } else {
           setNotFound(true);
@@ -56,7 +63,20 @@ const DetailPage: React.FC = () => {
       content: '确定要撤回这个发布吗？撤回后将无法恢复',
       success: (res) => {
         if (res.confirm) {
-          updateItemStatus('已下架');
+          DataManager.updatePublishedItem(item.id, { status: '已下架' });
+          setItem({ ...item, status: '已下架' });
+          setIsOffline(true);
+          
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '审核',
+            title: '您的物品已下架',
+            content: '您的物品已成功下架，如需重新发布请前往发布页',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: item.id
+          });
+          
           Taro.showToast({
             title: '已撤回',
             icon: 'success'
@@ -74,7 +94,20 @@ const DetailPage: React.FC = () => {
       content: '确定要下架这个物品吗？下架后将不再对外展示',
       success: (res) => {
         if (res.confirm) {
-          updateItemStatus('已下架');
+          DataManager.updatePublishedItem(item.id, { status: '已下架' });
+          setItem({ ...item, status: '已下架' });
+          setIsOffline(true);
+          
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '审核',
+            title: '您的物品已下架',
+            content: '您的物品已成功下架，如需重新发布请前往发布页',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: item.id
+          });
+          
           Taro.showToast({
             title: '已下架',
             icon: 'success'
@@ -82,30 +115,6 @@ const DetailPage: React.FC = () => {
         }
       }
     });
-  };
-
-  const updateItemStatus = (newStatus: string) => {
-    if (!item) return;
-    
-    try {
-      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
-      const updatedItems = storageItems.map((i: Item) => {
-        if (i.id === item.id) {
-          return { ...i, status: newStatus };
-        }
-        return i;
-      });
-      
-      Taro.setStorageSync('myPublishedItems', updatedItems);
-      
-      const app = Taro.getApp();
-      app.globalData = app.globalData || {};
-      app.globalData.myPublishedItems = updatedItems;
-      
-      setItem({ ...item, status: newStatus });
-    } catch (e) {
-      console.error('[Detail] Failed to update item status:', e);
-    }
   };
 
   const handleFavorite = () => {
@@ -329,6 +338,13 @@ const DetailPage: React.FC = () => {
             </View>
           </View>
         </View>
+
+        {isOffline && (
+          <View className={styles.offlineNotice}>
+            <Text className={styles.offlineIcon}>⚠️</Text>
+            <Text className={styles.offlineText}>此物品已下架，不再对外展示</Text>
+          </View>
+        )}
 
         {item && (
           <View className={styles.actionBar}>

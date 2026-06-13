@@ -3,13 +3,54 @@ import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Message } from '@/data/mockData';
-import { mockMessages } from '@/data/mockData';
 
 type TabType = 'all' | 'unread';
 
 const MessagePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const storageMessages = Taro.getStorageSync('myMessages');
+      if (storageMessages && storageMessages.length > 0) {
+        return storageMessages;
+      }
+      return getDefaultMessages();
+    } catch (e) {
+      console.error('[Message] Failed to load messages:', e);
+      return getDefaultMessages();
+    }
+  });
+
+  function getDefaultMessages(): Message[] {
+    return [
+      {
+        id: '1',
+        type: '审核',
+        title: '您的捐赠物品已通过审核',
+        content: '您提交的物品已审核通过，正在等待爱心人士预约',
+        status: '未读',
+        createTime: new Date().toLocaleString('zh-CN'),
+        relatedId: ''
+      },
+      {
+        id: '2',
+        type: '预约',
+        title: '有新用户预约您的物品',
+        content: '用户预约了您的物品，请及时确认交接时间',
+        status: '未读',
+        createTime: new Date().toLocaleString('zh-CN'),
+        relatedId: ''
+      }
+    ];
+  }
+
+  const saveMessages = (newMessages: Message[]) => {
+    try {
+      Taro.setStorageSync('myMessages', newMessages);
+    } catch (e) {
+      console.error('[Message] Failed to save messages:', e);
+    }
+  };
 
   const filteredMessages = activeTab === 'all' 
     ? messages 
@@ -28,14 +69,17 @@ const MessagePage: React.FC = () => {
   };
 
   const handleMessageClick = (msg: Message) => {
+    let updated = messages;
+    
     if (msg.status === '未读') {
-      const updated = messages.map((m) => {
+      updated = messages.map((m) => {
         if (m.id === msg.id) {
           return { ...m, status: '已读' as const };
         }
         return m;
       });
       setMessages(updated);
+      saveMessages(updated);
     }
 
     let targetUrl = '';
@@ -74,6 +118,7 @@ const MessagePage: React.FC = () => {
   const handleMarkAllRead = () => {
     const updated = messages.map((m) => ({ ...m, status: '已读' as const }));
     setMessages(updated);
+    saveMessages(updated);
     Taro.showToast({
       title: '已全部标记为已读',
       icon: 'success'

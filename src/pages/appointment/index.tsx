@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Appointment } from '@/data/mockData';
 import { mockAppointments } from '@/data/mockData';
+import DataManager from '@/data/dataManager';
 
 type TabType = 'pending' | 'processing' | 'completed';
 
@@ -20,9 +21,13 @@ const AppointmentPage: React.FC = () => {
   }, []);
 
   const loadAppointments = () => {
-    const app = Taro.getApp();
-    const globalAppointments = app.globalData?.appointments || mockAppointments;
-    setAppointments([...globalAppointments]);
+    const storageAppointments = DataManager.getAppointments();
+    if (storageAppointments.length > 0) {
+      setAppointments([...storageAppointments]);
+    } else {
+      DataManager.setAppointments(mockAppointments);
+      setAppointments([...mockAppointments]);
+    }
   };
 
   const filteredAppointments = appointments.filter((apt) => {
@@ -59,22 +64,22 @@ const AppointmentPage: React.FC = () => {
       content: '请确认您已收到物品并完成交接',
       success: (res) => {
         if (res.confirm) {
-          const updated = appointments.map((apt) => {
-            if (apt.id === aptId) {
-              return { 
-                ...apt, 
-                status: '已完成' as const,
-                completeTime: new Date().toLocaleString('zh-CN')
-              };
-            }
-            return apt;
+          const updated = DataManager.updateAppointment(aptId, {
+            status: '已完成',
+            completeTime: new Date().toLocaleString('zh-CN')
           });
           
-          const app = Taro.getApp();
-          app.globalData = app.globalData || {};
-          app.globalData.appointments = updated;
-          
-          setAppointments([...updated]);
+          setAppointments([...DataManager.getAppointments()]);
+
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '交接',
+            title: '物品交接已完成',
+            content: '恭喜！您的爱心物资已成功交付，感谢您的捐赠',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: aptId
+          });
           
           Taro.showToast({
             title: '交接完成',

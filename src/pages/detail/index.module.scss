@@ -36,7 +36,7 @@
 
   .notFoundTitle {
     font-size: $font-size-xl;
-    font-weight: $font-weight-semibold;
+    font-weight: $font-weight-bold;
     color: $color-text-primary;
     margin-bottom: $spacing-sm;
   }
@@ -243,6 +243,26 @@
         color: $color-text-tertiary;
       }
     }
+  }
+}
+
+.offlineNotice {
+  background: rgba($color-warning, 0.1);
+  padding: $spacing-lg;
+  margin: 0 $page-padding $spacing-md;
+  border-radius: $radius-md;
+  text-align: center;
+
+  .offlineIcon {
+    font-size: 48rpx;
+    margin-bottom: $spacing-sm;
+    display: block;
+  }
+
+  .offlineText {
+    font-size: $font-size-md;
+    color: $color-warning;
+    font-weight: $font-weight-medium;
   }
 }
 

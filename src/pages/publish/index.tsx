@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { mockOrganizations } from '@/data/mockData';
 import { PickPoint } from '@/data/mockData';
+import DataManager from '@/data/dataManager';
 
 const categories = ['图书', '服装', '母婴用品', '学习用品', '家用电器', '其他'];
 const conditions = ['全新', '九成新', '八成新', '七成新'];
@@ -105,17 +106,7 @@ const PublishPage: React.FC = () => {
       userAvatar: 'https://picsum.photos/id/64/200/200'
     };
 
-    try {
-      const existingItems = Taro.getStorageSync('myPublishedItems') || [];
-      const updatedItems = [newItem, ...existingItems];
-      Taro.setStorageSync('myPublishedItems', updatedItems);
-      
-      const app = Taro.getApp();
-      app.globalData = app.globalData || {};
-      app.globalData.myPublishedItems = updatedItems;
-    } catch (e) {
-      console.error('[Publish] Failed to save item:', e);
-    }
+    DataManager.addPublishedItem(newItem);
 
     setTimeout(() => {
       Taro.hideLoading();

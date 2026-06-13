@@ -4,6 +4,7 @@ import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Appointment } from '@/data/mockData';
 import { mockAppointments } from '@/data/mockData';
+import DataManager from '@/data/dataManager';
 
 const HandoverPage: React.FC = () => {
   const router = useRouter();
@@ -23,10 +24,20 @@ const HandoverPage: React.FC = () => {
 
   const loadAppointment = () => {
     const { id } = router.params;
-    const app = Taro.getApp();
-    const globalAppointments = app.globalData?.appointments || mockAppointments;
-    const found = globalAppointments.find(apt => apt.id === id);
-    setAppointment(found || null);
+    const appointments = DataManager.getAppointments();
+    const found = appointments.find(apt => apt.id === id);
+    
+    if (!found) {
+      const mockFound = mockAppointments.find(apt => apt.id === id);
+      if (mockFound) {
+        DataManager.addAppointment(mockFound);
+        setAppointment(mockFound);
+      } else {
+        setAppointment(null);
+      }
+    } else {
+      setAppointment(found);
+    }
   };
 
   const handleConfirm = () => {
@@ -37,26 +48,25 @@ const HandoverPage: React.FC = () => {
       content: '请确认物品已成功交付',
       success: (res) => {
         if (res.confirm) {
-          const app = Taro.getApp();
-          const globalAppointments = app.globalData?.appointments || mockAppointments;
-          const updated = globalAppointments.map((apt) => {
-            if (apt.id === appointment.id) {
-              return { 
-                ...apt, 
-                status: '已完成' as const,
-                completeTime: new Date().toLocaleString('zh-CN')
-              };
-            }
-            return apt;
+          DataManager.updateAppointment(appointment.id, {
+            status: '已完成',
+            completeTime: new Date().toLocaleString('zh-CN')
           });
-          
-          app.globalData = app.globalData || {};
-          app.globalData.appointments = updated;
           
           setAppointment({
             ...appointment,
             status: '已完成',
             completeTime: new Date().toLocaleString('zh-CN')
+          });
+          
+          DataManager.addMessage({
+            id: `msg_${Date.now()}`,
+            type: '交接',
+            title: '物品交接已完成',
+            content: '恭喜！您的爱心物资已成功交付，感谢您的捐赠',
+            status: '未读',
+            createTime: new Date().toLocaleString('zh-CN'),
+            relatedId: appointment.id
           });
           
           Taro.showToast({
@@ -76,7 +86,9 @@ const HandoverPage: React.FC = () => {
   };
 
   const handleSubmitRating = () => {
-    if (!appointment || !ratingContent.trim()) {
+    if (!appointment) return;
+    
+    if (!ratingContent.trim()) {
       Taro.showToast({
         title: '请填写评价内容',
         icon: 'none'
@@ -84,22 +96,11 @@ const HandoverPage: React.FC = () => {
       return;
     }
 
-    const app = Taro.getApp();
-    const globalAppointments = app.globalData?.appointments || mockAppointments;
-    const updated = globalAppointments.map((apt) => {
-      if (apt.id === appointment.id) {
-        return { 
-          ...apt, 
-          rating,
-          ratingContent,
-          itemCondition
-        };
-      }
-      return apt;
+    DataManager.updateAppointment(appointment.id, {
+      rating,
+      ratingContent,
+      itemCondition
     });
-    
-    app.globalData = app.globalData || {};
-    app.globalData.appointments = updated;
     
     setAppointment({
       ...appointment,
