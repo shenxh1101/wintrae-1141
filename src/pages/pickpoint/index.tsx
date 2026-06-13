@@ -35,10 +35,16 @@ const PickpointPage: React.FC = () => {
 
   const handleSelectPoint = (point: PickPoint) => {
     setSelectedPoint(point);
+    
+    const app = Taro.getApp();
+    app.globalData = app.globalData || {};
+    app.globalData.selectedPickPoint = point;
+    
     Taro.showToast({
       title: `已选择: ${point.name}`,
       icon: 'success'
     });
+    
     setTimeout(() => {
       Taro.navigateBack();
     }, 1000);

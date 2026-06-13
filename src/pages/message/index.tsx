@@ -38,16 +38,36 @@ const MessagePage: React.FC = () => {
       setMessages(updated);
     }
 
+    let targetUrl = '';
+    
     if (msg.relatedId) {
       if (msg.type === '审核' || msg.type === '预约') {
-        Taro.navigateTo({
-          url: `/pages/detail/index?id=${msg.relatedId}`
-        });
+        targetUrl = `/pages/detail/index?id=${msg.relatedId}`;
       } else if (msg.type === '交接') {
-        Taro.navigateTo({
-          url: `/pages/handover/index?id=${msg.relatedId}`
-        });
+        targetUrl = `/pages/handover/index?id=${msg.relatedId}`;
+      } else if (msg.type === '评价') {
+        targetUrl = `/pages/handover/index?id=${msg.relatedId}&action=rate`;
       }
+    }
+
+    if (targetUrl) {
+      Taro.navigateTo({
+        url: targetUrl,
+        fail: (err) => {
+          console.error('[Message] Navigation failed:', err);
+          Taro.showModal({
+            title: '提示',
+            content: '该消息关联的内容已不存在或已被删除',
+            showCancel: false,
+            confirmText: '知道了'
+          });
+        }
+      });
+    } else {
+      Taro.showToast({
+        title: '消息详情开发中',
+        icon: 'none'
+      });
     }
   };
 

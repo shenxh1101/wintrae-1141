@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Item, Organization } from '@/data/mockData';
 import { mockItems, mockOrganizations } from '@/data/mockData';
 
 const ProfilePage: React.FC = () => {
-  const [userStats] = useState({
-    donationCount: 12,
-    helpedPeople: 28,
-    charityHours: 45.5,
-    myPublished: mockItems.filter(i => i.status !== '待审核').slice(0, 2),
-    favoriteOrgs: mockOrganizations.slice(0, 3)
+  const [myPublished, setMyPublished] = useState<Item[]>([]);
+  const [favoriteOrgs] = useState<Organization[]>(mockOrganizations.slice(0, 3));
+
+  useDidShow(() => {
+    loadMyPublished();
   });
+
+  useEffect(() => {
+    loadMyPublished();
+  }, []);
+
+  const loadMyPublished = () => {
+    const app = Taro.getApp();
+    const globalPublished = app.globalData?.myPublishedItems || [];
+    const allPublished = [...globalPublished, ...mockItems.filter(i => i.status !== '待审核')];
+    setMyPublished(allPublished);
+  };
+
+  const userStats = {
+    donationCount: myPublished.filter(i => i.status === '已完成').length,
+    helpedPeople: myPublished.filter(i => i.status !== '待审核').length,
+    charityHours: (myPublished.filter(i => i.status === '已完成').length * 3.5).toFixed(1)
+  };
 
   const handleSettings = () => {
     Taro.showToast({
@@ -34,6 +50,12 @@ const ProfilePage: React.FC = () => {
     });
   };
 
+  const handleViewItem = (itemId: string) => {
+    Taro.navigateTo({
+      url: `/pages/detail/index?id=${itemId}`
+    });
+  };
+
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
       '待审核': '等待审核',
@@ -43,6 +65,19 @@ const ProfilePage: React.FC = () => {
       '已下架': '已下架'
     };
     return statusMap[status] || status;
+  };
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case '待审核':
+        return { color: '#ff9500', backgroundColor: 'rgba(255, 149, 0, 0.1)' };
+      case '已被预约':
+        return { color: '#576b95', backgroundColor: 'rgba(87, 107, 149, 0.1)' };
+      case '已完成':
+        return { color: '#07c160', backgroundColor: 'rgba(7, 193, 96, 0.1)' };
+      default:
+        return { color: '#999999', backgroundColor: 'rgba(153, 153, 153, 0.1)' };
+    }
   };
 
   return (
@@ -90,18 +125,38 @@ const ProfilePage: React.FC = () => {
             查看全部 ›
           </Text>
         </View>
-        <View className={styles.recordList}>
-          {userStats.myPublished.map((item: Item) => (
-            <View key={item.id} className={styles.recordCard}>
-              <Image className={styles.recordImage} src={item.images[0]} mode="aspectFill" />
-              <View className={styles.recordInfo}>
-                <Text className={styles.recordTitle}>{item.title}</Text>
-                <Text className={styles.recordStatus}>{getStatusText(item.status)}</Text>
+        {myPublished.length > 0 ? (
+          <View className={styles.recordList}>
+            {myPublished.map((item: Item) => (
+              <View 
+                key={item.id} 
+                className={styles.recordCard}
+                onClick={() => handleViewItem(item.id)}
+              >
+                <Image className={styles.recordImage} src={item.images[0]} mode="aspectFill" />
+                <View className={styles.recordInfo}>
+                  <Text className={styles.recordTitle}>{item.title}</Text>
+                  <View 
+                    className={styles.recordStatus}
+                    style={getStatusStyle(item.status)}
+                  >
+                    {getStatusText(item.status)}
+                  </View>
+                </View>
+                <View className={styles.recordMeta}>
+                  <Text className={styles.recordTime}>{item.createTime}</Text>
+                  <Text className={styles.recordPoint}>{item.pickPoint}</Text>
+                </View>
               </View>
-              <Text className={styles.recordTime}>{item.createTime}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : (
+          <View className={styles.emptyRecord}>
+            <Text className={styles.emptyIcon}>📦</Text>
+            <Text className={styles.emptyText}>暂无发布记录</Text>
+            <Text className={styles.emptyHint}>点击底部"发布"开始您的第一次捐赠</Text>
+          </View>
+        )}
       </View>
 
       <View className={styles.section}>
@@ -115,7 +170,7 @@ const ProfilePage: React.FC = () => {
           </Text>
         </View>
         <View className={styles.orgList}>
-          {userStats.favoriteOrgs.map((org: Organization) => (
+          {favoriteOrgs.map((org: Organization) => (
             <View 
               key={org.id} 
               className={styles.orgCard}

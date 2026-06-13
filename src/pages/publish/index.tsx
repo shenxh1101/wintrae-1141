@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Input, Textarea, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { mockOrganizations } from '@/data/mockData';
+import { PickPoint } from '@/data/mockData';
 
 const categories = ['图书', '服装', '母婴用品', '学习用品', '家用电器', '其他'];
 const conditions = ['全新', '九成新', '八成新', '七成新'];
@@ -14,8 +15,28 @@ const PublishPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [condition, setCondition] = useState('');
-  const [pickPoint, setPickPoint] = useState(mockOrganizations[0].pickPoints[0]);
+  const [pickPoint, setPickPoint] = useState<PickPoint>(() => {
+    const app = Taro.getApp();
+    const savedPoint = app.globalData?.selectedPickPoint;
+    if (savedPoint) {
+      return savedPoint;
+    }
+    return mockOrganizations[0].pickPoints[0];
+  });
   const [timeOption, setTimeOption] = useState('');
+
+  useDidShow(() => {
+    const app = Taro.getApp();
+    if (app.globalData?.selectedPickPoint) {
+      setPickPoint(app.globalData.selectedPickPoint);
+      app.globalData.selectedPickPoint = null;
+    }
+  });
+
+  useEffect(() => {
+    const app = Taro.getApp();
+    app.globalData = app.globalData || {};
+  }, []);
 
   const handleAddPhoto = () => {
     Taro.chooseImage({
@@ -41,21 +62,62 @@ const PublishPage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!title || !category || !description || photos.length === 0 || !condition || !timeOption) {
-      Taro.showToast({
-        title: '请填写完整信息',
-        icon: 'none'
-      });
+    if (!title) {
+      Taro.showToast({ title: '请输入物品名称', icon: 'none' });
+      return;
+    }
+    if (!category) {
+      Taro.showToast({ title: '请选择物品分类', icon: 'none' });
+      return;
+    }
+    if (!description) {
+      Taro.showToast({ title: '请填写物品描述', icon: 'none' });
+      return;
+    }
+    if (photos.length === 0) {
+      Taro.showToast({ title: '请上传物品照片', icon: 'none' });
+      return;
+    }
+    if (!condition) {
+      Taro.showToast({ title: '请选择新旧程度', icon: 'none' });
+      return;
+    }
+    if (!timeOption) {
+      Taro.showToast({ title: '请选择可交接时间', icon: 'none' });
       return;
     }
 
     Taro.showLoading({ title: '提交中...' });
+
+    const newItem = {
+      id: `item_${Date.now()}`,
+      title,
+      category,
+      description,
+      condition: condition as any,
+      images: photos,
+      status: '待审核',
+      pickPoint: pickPoint.name,
+      pickPointAddress: pickPoint.address,
+      availableTime: timeOption,
+      createTime: new Date().toLocaleString('zh-CN'),
+      userId: 'current_user',
+      userName: '爱心用户',
+      userAvatar: 'https://picsum.photos/id/64/200/200'
+    };
+
+    const app = Taro.getApp();
+    app.globalData = app.globalData || {};
+    app.globalData.myPublishedItems = app.globalData.myPublishedItems || [];
+    app.globalData.myPublishedItems.unshift(newItem);
+
     setTimeout(() => {
       Taro.hideLoading();
       Taro.showToast({
         title: '提交成功，等待审核',
         icon: 'success'
       });
+
       setTimeout(() => {
         Taro.switchTab({
           url: '/pages/profile/index'

@@ -145,7 +145,7 @@
   .recordCard {
     background: white;
     border-radius: $radius-lg;
-    padding: $spacing-lg;
+    padding: $spacing-md;
     margin-bottom: $spacing-sm;
     box-shadow: $shadow-card;
     display: flex;
@@ -171,15 +171,58 @@
       }
 
       .recordStatus {
-        font-size: $font-size-sm;
-        color: $color-text-tertiary;
+        display: inline-block;
+        padding: 4rpx $spacing-sm;
+        border-radius: $radius-xs;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
+        margin-top: $spacing-xs;
       }
     }
 
-    .recordTime {
-      font-size: $font-size-xs;
-      color: $color-text-tertiary;
+    .recordMeta {
+      text-align: right;
+
+      .recordTime {
+        display: block;
+        font-size: $font-size-xs;
+        color: $color-text-tertiary;
+        margin-bottom: 4rpx;
+      }
+
+      .recordPoint {
+        display: block;
+        font-size: $font-size-xs;
+        color: $color-text-tertiary;
+      }
     }
+  }
+}
+
+.emptyRecord {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  text-align: center;
+  box-shadow: $shadow-card;
+
+  .emptyIcon {
+    font-size: 80rpx;
+    margin-bottom: $spacing-md;
+    display: block;
+  }
+
+  .emptyText {
+    font-size: $font-size-lg;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+    display: block;
+  }
+
+  .emptyHint {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    display: block;
   }
 }
 

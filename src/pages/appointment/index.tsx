@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Appointment } from '@/data/mockData';
 import { mockAppointments } from '@/data/mockData';
@@ -9,7 +9,21 @@ type TabType = 'pending' | 'processing' | 'completed';
 
 const AppointmentPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('pending');
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  useDidShow(() => {
+    loadAppointments();
+  });
+
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const loadAppointments = () => {
+    const app = Taro.getApp();
+    const globalAppointments = app.globalData?.appointments || mockAppointments;
+    setAppointments([...globalAppointments]);
+  };
 
   const filteredAppointments = appointments.filter((apt) => {
     switch (activeTab) {
@@ -47,11 +61,21 @@ const AppointmentPage: React.FC = () => {
         if (res.confirm) {
           const updated = appointments.map((apt) => {
             if (apt.id === aptId) {
-              return { ...apt, status: '已完成' as const };
+              return { 
+                ...apt, 
+                status: '已完成' as const,
+                completeTime: new Date().toLocaleString('zh-CN')
+              };
             }
             return apt;
           });
-          setAppointments(updated);
+          
+          const app = Taro.getApp();
+          app.globalData = app.globalData || {};
+          app.globalData.appointments = updated;
+          
+          setAppointments([...updated]);
+          
           Taro.showToast({
             title: '交接完成',
             icon: 'success'
@@ -68,9 +92,8 @@ const AppointmentPage: React.FC = () => {
   };
 
   const handleRate = (aptId: string) => {
-    Taro.showToast({
-      title: '感谢您的评价',
-      icon: 'success'
+    Taro.navigateTo({
+      url: `/pages/handover/index?id=${aptId}&action=rate`
     });
   };
 
@@ -195,7 +218,7 @@ const AppointmentPage: React.FC = () => {
                       className={`${styles.btn} ${styles.secondary}`}
                       onClick={() => handleRate(apt.id)}
                     >
-                      评价
+                      {apt.rating ? '查看评价' : '评价'}
                     </View>
                     <View 
                       className={`${styles.btn} ${styles.secondary}`}
