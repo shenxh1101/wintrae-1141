@@ -1,0 +1,201 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.header {
+  background: white;
+  padding: $spacing-xl $page-padding;
+  text-align: center;
+
+  .avatar {
+    width: 160rpx;
+    height: 160rpx;
+    border-radius: $radius-lg;
+    margin-bottom: $spacing-md;
+  }
+
+  .name {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-sm;
+    @include text-ellipsis;
+  }
+
+  .verifiedTag {
+    display: inline-block;
+    padding: 4rpx $spacing-sm;
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
+    border-radius: $radius-xs;
+    font-size: $font-size-xs;
+    margin-bottom: $spacing-md;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-xl;
+
+    .statItem {
+      text-align: center;
+
+      .statValue {
+        font-size: 36rpx;
+        font-weight: $font-weight-bold;
+        color: $color-primary;
+        margin-bottom: 4rpx;
+      }
+
+      .statLabel {
+        font-size: $font-size-sm;
+        color: $color-text-tertiary;
+      }
+    }
+  }
+}
+
+.section {
+  background: white;
+  margin-top: $spacing-sm;
+  padding: $spacing-lg;
+
+  .sectionTitle {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
+  }
+
+  .description {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    line-height: $line-height-loose;
+  }
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    padding: $spacing-sm 0;
+    font-size: $font-size-md;
+
+    .infoLabel {
+      color: $color-text-tertiary;
+      width: 140rpx;
+    }
+
+    .infoValue {
+      flex: 1;
+      color: $color-text-primary;
+    }
+  }
+}
+
+.pickPointsSection {
+  background: white;
+  margin-top: $spacing-sm;
+  padding: $spacing-lg;
+
+  .sectionTitle {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
+  }
+
+  .pointCard {
+    background: $color-bg-page;
+    border-radius: $radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-sm;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .pointHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-sm;
+
+      .pointName {
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+      }
+
+      .distance {
+        font-size: $font-size-xs;
+        color: $color-primary;
+      }
+    }
+
+    .pointInfo {
+      font-size: $font-size-sm;
+      color: $color-text-tertiary;
+      margin-bottom: $spacing-xs;
+
+      .infoItem {
+        margin-bottom: 4rpx;
+      }
+    }
+
+    .navigateBtn {
+      @include button-reset;
+      width: 100%;
+      height: 64rpx;
+      background: rgba($color-primary, 0.1);
+      border-radius: $radius-button;
+      color: $color-primary;
+      font-size: $font-size-sm;
+      margin-top: $spacing-sm;
+
+      &:active {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.actionBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: $spacing-md;
+
+  .actionBtn {
+    @include button-reset;
+    height: $button-height-lg;
+    border-radius: $radius-button;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+
+    &.favorite {
+      width: 100rpx;
+      background: $color-bg-page;
+      color: $color-text-secondary;
+      font-size: 36rpx;
+    }
+
+    &.follow {
+      flex: 1;
+      background: $color-primary;
+      color: white;
+
+      &:active {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+    }
+  }
+}

@@ -1,0 +1,156 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.tabBar {
+  display: flex;
+  background: white;
+  padding: $spacing-md $page-padding;
+  border-bottom: 1rpx solid $color-border;
+
+  .tabItem {
+    flex: 1;
+    height: 64rpx;
+    @include flex-center;
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    position: relative;
+
+    &.active {
+      color: $color-primary;
+      font-weight: $font-weight-medium;
+    }
+
+    &.active::after {
+      content: '';
+      position: absolute;
+      bottom: -$spacing-md;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48rpx;
+      height: 4rpx;
+      background: $color-primary;
+      border-radius: 2rpx;
+    }
+  }
+
+  .tabBadge {
+    position: absolute;
+    top: -8rpx;
+    right: 16rpx;
+    min-width: 32rpx;
+    height: 32rpx;
+    background: $color-error;
+    border-radius: 16rpx;
+    @include flex-center;
+    font-size: 20rpx;
+    color: white;
+    padding: 0 8rpx;
+  }
+}
+
+.messageList {
+  padding: $spacing-md $page-padding;
+}
+
+.messageCard {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+  position: relative;
+
+  &.unread {
+    background: linear-gradient(135deg, rgba($color-primary, 0.03) 0%, white 100%);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6rpx;
+      background: $color-primary;
+      border-radius: 3rpx 0 0 3rpx;
+    }
+  }
+
+  .messageHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-sm;
+
+    .typeTag {
+      padding: 4rpx $spacing-sm;
+      border-radius: $radius-xs;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+      margin-right: $spacing-sm;
+
+      &.audit {
+        background: rgba($color-info, 0.1);
+        color: $color-info;
+      }
+
+      &.appointment {
+        background: rgba($color-warning, 0.1);
+        color: $color-warning;
+      }
+
+      &.handover {
+        background: rgba($color-primary, 0.1);
+        color: $color-primary;
+      }
+
+      &.rating {
+        background: rgba($color-success, 0.1);
+        color: $color-success;
+      }
+    }
+
+    .title {
+      flex: 1;
+      font-size: $font-size-md;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+      @include text-ellipsis;
+    }
+
+    .time {
+      font-size: $font-size-xs;
+      color: $color-text-tertiary;
+    }
+  }
+
+  .content {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: $line-height-normal;
+    @include text-ellipsis-multi(2);
+  }
+}
+
+.emptyState {
+  padding: 120rpx $page-padding;
+  text-align: center;
+
+  .emptyIcon {
+    font-size: 120rpx;
+    margin-bottom: $spacing-lg;
+  }
+
+  .emptyText {
+    font-size: $font-size-lg;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-sm;
+  }
+
+  .emptyHint {
+    font-size: $font-size-sm;
+    color: $color-text-disabled;
+  }
+}

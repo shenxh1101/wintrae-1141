@@ -1,0 +1,192 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba($color-primary, 0.05) 0%, $color-bg-page 100%);
+  padding: $spacing-lg $page-padding;
+}
+
+.handoverCodeCard {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  text-align: center;
+
+  .codeLabel {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-md;
+  }
+
+  .codeValue {
+    font-size: 64rpx;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    letter-spacing: 8rpx;
+    margin-bottom: $spacing-md;
+  }
+
+  .codeHint {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+}
+
+.statusCard {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  .cardHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-md;
+
+    .itemImage {
+      width: 100rpx;
+      height: 100rpx;
+      border-radius: $radius-md;
+      margin-right: $spacing-md;
+      object-fit: cover;
+    }
+
+    .itemInfo {
+      flex: 1;
+
+      .itemTitle {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: $color-text-primary;
+        margin-bottom: $spacing-xs;
+        @include text-ellipsis;
+      }
+
+      .statusTag {
+        display: inline-block;
+        padding: 4rpx $spacing-sm;
+        border-radius: $radius-xs;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
+
+        &.pending {
+          background: rgba($color-warning, 0.1);
+          color: $color-warning;
+        }
+
+        &.processing {
+          background: rgba($color-info, 0.1);
+          color: $color-info;
+        }
+
+        &.completed {
+          background: rgba($color-success, 0.1);
+          color: $color-success;
+        }
+      }
+    }
+  }
+
+  .infoSection {
+    .infoRow {
+      display: flex;
+      align-items: center;
+      margin-bottom: $spacing-sm;
+      font-size: $font-size-sm;
+
+      .infoLabel {
+        color: $color-text-tertiary;
+        width: 140rpx;
+      }
+
+      .infoValue {
+        flex: 1;
+        color: $color-text-primary;
+      }
+    }
+  }
+}
+
+.partiesCard {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  .sectionTitle {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
+  }
+
+  .partyItem {
+    display: flex;
+    align-items: center;
+    padding: $spacing-md 0;
+    border-bottom: 1rpx solid $color-divider;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .partyAvatar {
+      width: 64rpx;
+      height: 64rpx;
+      border-radius: 50%;
+      margin-right: $spacing-md;
+    }
+
+    .partyInfo {
+      flex: 1;
+
+      .partyName {
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+        margin-bottom: 4rpx;
+      }
+
+      .partyRole {
+        font-size: $font-size-sm;
+        color: $color-text-tertiary;
+      }
+    }
+
+    .contactBtn {
+      @include button-reset;
+      padding: $spacing-xs $spacing-md;
+      background: rgba($color-primary, 0.1);
+      border-radius: $radius-button;
+      color: $color-primary;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+.actionCard {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+
+  .actionBtn {
+    @include button-reset;
+    width: 100%;
+    height: $button-height-lg;
+    background: $color-primary;
+    border-radius: $radius-button;
+    color: white;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+
+    &:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+  }
+}

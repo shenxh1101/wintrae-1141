@@ -1,0 +1,140 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-md $page-padding;
+}
+
+.searchBar {
+  background: white;
+  border-radius: $radius-button;
+  padding: 0 $spacing-md;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  .searchIcon {
+    font-size: 28rpx;
+    color: $color-text-tertiary;
+    margin-right: $spacing-sm;
+  }
+
+  Input {
+    flex: 1;
+    height: 100%;
+    font-size: $font-size-md;
+  }
+}
+
+.currentLocation {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  .locationHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-sm;
+
+    .locationTitle {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+    }
+
+    .refreshBtn {
+      @include button-reset;
+      font-size: $font-size-sm;
+      color: $color-primary;
+    }
+  }
+
+  .locationInfo {
+    display: flex;
+    align-items: center;
+
+    .locationIcon {
+      font-size: 32rpx;
+      margin-right: $spacing-sm;
+    }
+
+    .locationText {
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+    }
+  }
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.pointList {
+  .pointCard {
+    background: white;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-sm;
+    box-shadow: $shadow-card;
+
+    .pointHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: $spacing-sm;
+
+      .pointName {
+        flex: 1;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: $color-text-primary;
+        @include text-ellipsis;
+      }
+
+      .distance {
+        font-size: $font-size-sm;
+        color: $color-primary;
+        margin-left: $spacing-sm;
+      }
+    }
+
+    .pointInfo {
+      font-size: $font-size-sm;
+      color: $color-text-tertiary;
+      margin-bottom: $spacing-sm;
+
+      .infoItem {
+        margin-bottom: 4rpx;
+      }
+    }
+
+    .selectBtn {
+      @include button-reset;
+      width: 100%;
+      height: $button-height-md;
+      background: $color-bg-page;
+      border-radius: $radius-button;
+      color: $color-primary;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+
+      &.selected {
+        background: $color-primary;
+        color: white;
+      }
+
+      &:active {
+        opacity: 0.8;
+      }
+    }
+  }
+}
