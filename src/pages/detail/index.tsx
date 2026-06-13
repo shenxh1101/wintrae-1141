@@ -34,9 +34,8 @@ const DetailPage: React.FC = () => {
           setNotFound(true);
         }
       } else {
-        const app = Taro.getApp();
-        const globalItems = app.globalData?.myPublishedItems || [];
-        const foundItem = [...globalItems, ...mockItems].find(i => i.id === id);
+        const storageItems = Taro.getStorageSync('myPublishedItems') || [];
+        const foundItem = [...storageItems, ...mockItems].find(i => i.id === id);
         
         if (foundItem) {
           setItem(foundItem);
@@ -47,6 +46,66 @@ const DetailPage: React.FC = () => {
       }
       setLoading(false);
     }, 500);
+  };
+
+  const handleRevoke = () => {
+    if (!item) return;
+    
+    Taro.showModal({
+      title: '撤回确认',
+      content: '确定要撤回这个发布吗？撤回后将无法恢复',
+      success: (res) => {
+        if (res.confirm) {
+          updateItemStatus('已下架');
+          Taro.showToast({
+            title: '已撤回',
+            icon: 'success'
+          });
+        }
+      }
+    });
+  };
+
+  const handleOffline = () => {
+    if (!item) return;
+    
+    Taro.showModal({
+      title: '下架确认',
+      content: '确定要下架这个物品吗？下架后将不再对外展示',
+      success: (res) => {
+        if (res.confirm) {
+          updateItemStatus('已下架');
+          Taro.showToast({
+            title: '已下架',
+            icon: 'success'
+          });
+        }
+      }
+    });
+  };
+
+  const updateItemStatus = (newStatus: string) => {
+    if (!item) return;
+    
+    try {
+      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
+      const updatedItems = storageItems.map((i: Item) => {
+        if (i.id === item.id) {
+          return { ...i, status: newStatus };
+        }
+        return i;
+      });
+      
+      Taro.setStorageSync('myPublishedItems', updatedItems);
+      
+      const app = Taro.getApp();
+      app.globalData = app.globalData || {};
+      app.globalData.myPublishedItems = updatedItems;
+      
+      setItem({ ...item, status: newStatus });
+    } catch (e) {
+      console.error('[Detail] Failed to update item status:', e);
+    }
   };
 
   const handleFavorite = () => {
@@ -105,8 +164,14 @@ const DetailPage: React.FC = () => {
   const handleGoBack = () => {
     Taro.navigateBack().catch(() => {
       Taro.switchTab({
-        url: '/pages/square/index'
+        url: '/pages/profile/index'
       });
+    });
+  };
+
+  const handleGoToProfile = () => {
+    Taro.switchTab({
+      url: '/pages/profile/index'
     });
   };
 
@@ -132,13 +197,13 @@ const DetailPage: React.FC = () => {
           </Text>
           <View className={styles.notFoundActions}>
             <View className={styles.backBtn} onClick={handleGoBack}>
-              <Text className={styles.backBtnText}>返回消息列表</Text>
+              <Text className={styles.backBtnText}>返回上一页</Text>
             </View>
             <View 
               className={styles.homeBtn}
-              onClick={() => Taro.switchTab({ url: '/pages/square/index' })}
+              onClick={handleGoToProfile}
             >
-              <Text className={styles.homeBtnText}>去需求广场</Text>
+              <Text className={styles.homeBtnText}>去我的发布</Text>
             </View>
           </View>
         </View>
@@ -265,21 +330,54 @@ const DetailPage: React.FC = () => {
           </View>
         </View>
 
-        {item && item.status === '已上架' && (
+        {item && (
+          <View className={styles.actionBar}>
+            {item.status === '待审核' && (
+              <>
+                <View className={`${styles.actionBtn} ${styles.favorite}`} onClick={handleFavorite}>
+                  {isFavorite ? '❤️' : '🤍'}
+                </View>
+                <View className={`${styles.actionBtn} ${styles.revoke}`} onClick={handleRevoke}>
+                  撤回发布
+                </View>
+              </>
+            )}
+            
+            {(item.status === '已上架' || item.status === '已被预约') && (
+              <>
+                <View className={`${styles.actionBtn} ${styles.favorite}`} onClick={handleFavorite}>
+                  {isFavorite ? '❤️' : '🤍'}
+                </View>
+                <View className={`${styles.actionBtn} ${styles.offline}`} onClick={handleOffline}>
+                  下架物品
+                </View>
+                <View className={`${styles.actionBtn} ${styles.reserve}`} onClick={handleReserve}>
+                  立即预约
+                </View>
+              </>
+            )}
+            
+            {item.status === '待审核' && (
+              <View className={`${styles.actionBtn} ${styles.pending}`}>
+                ⏳ 等待审核中
+              </View>
+            )}
+            
+            {(item.status === '已完成' || item.status === '已下架') && (
+              <View className={`${styles.actionBtn} ${styles.completed}`} onClick={handleGoToProfile}>
+                返回我的发布
+              </View>
+            )}
+          </View>
+        )}
+        
+        {!item && (
           <View className={styles.actionBar}>
             <View className={`${styles.actionBtn} ${styles.favorite}`} onClick={handleFavorite}>
               {isFavorite ? '❤️' : '🤍'}
             </View>
             <View className={`${styles.actionBtn} ${styles.reserve}`} onClick={handleReserve}>
-              立即预约
-            </View>
-          </View>
-        )}
-        
-        {item && item.status === '待审核' && (
-          <View className={styles.actionBar}>
-            <View className={`${styles.actionBtn} ${styles.pending}`}>
-              ⏳ 等待审核中
+              我想捐赠
             </View>
           </View>
         )}

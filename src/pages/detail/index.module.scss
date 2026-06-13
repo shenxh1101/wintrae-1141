@@ -289,5 +289,35 @@
       color: $color-text-secondary;
       font-size: $font-size-md;
     }
+
+    &.revoke {
+      flex: 1;
+      background: $color-error;
+      color: white;
+
+      &:active {
+        opacity: 0.9;
+      }
+    }
+
+    &.offline {
+      flex: 1;
+      background: $color-warning;
+      color: white;
+
+      &:active {
+        opacity: 0.9;
+      }
+    }
+
+    &.completed {
+      flex: 1;
+      background: $color-primary;
+      color: white;
+
+      &:active {
+        opacity: 0.9;
+      }
+    }
   }
 }

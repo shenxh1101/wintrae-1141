@@ -3,9 +3,12 @@ import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import { Item, Organization } from '@/data/mockData';
-import { mockItems, mockOrganizations } from '@/data/mockData';
+import { mockOrganizations } from '@/data/mockData';
+
+type TabType = 'pending' | 'available' | 'completed';
 
 const ProfilePage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [myPublished, setMyPublished] = useState<Item[]>([]);
   const [favoriteOrgs] = useState<Organization[]>(mockOrganizations.slice(0, 3));
 
@@ -20,21 +23,39 @@ const ProfilePage: React.FC = () => {
   const loadMyPublished = () => {
     try {
       const storageItems = Taro.getStorageSync('myPublishedItems') || [];
-      const allPublished = [...storageItems, ...mockItems.filter(i => i.status !== '待审核')];
-      setMyPublished(allPublished);
+      setMyPublished([...storageItems]);
       
       const app = Taro.getApp();
       app.globalData = app.globalData || {};
       app.globalData.myPublishedItems = storageItems;
     } catch (e) {
       console.error('[Profile] Failed to load published items:', e);
-      setMyPublished(mockItems.filter(i => i.status !== '待审核'));
+      setMyPublished([]);
     }
+  };
+
+  const filteredItems = myPublished.filter((item) => {
+    switch (activeTab) {
+      case 'pending':
+        return item.status === '待审核';
+      case 'available':
+        return item.status === '已上架' || item.status === '已被预约';
+      case 'completed':
+        return item.status === '已完成' || item.status === '已下架';
+      default:
+        return true;
+    }
+  });
+
+  const tabCounts = {
+    pending: myPublished.filter(i => i.status === '待审核').length,
+    available: myPublished.filter(i => i.status === '已上架' || i.status === '已被预约').length,
+    completed: myPublished.filter(i => i.status === '已完成' || i.status === '已下架').length
   };
 
   const userStats = {
     donationCount: myPublished.filter(i => i.status === '已完成').length,
-    helpedPeople: myPublished.filter(i => i.status !== '待审核').length,
+    helpedPeople: myPublished.filter(i => i.status !== '待审核' && i.status !== '已下架').length,
     charityHours: (myPublished.filter(i => i.status === '已完成').length * 3.5).toFixed(1)
   };
 
@@ -64,6 +85,63 @@ const ProfilePage: React.FC = () => {
     });
   };
 
+  const handleRevoke = (itemId: string, e: any) => {
+    e.stopPropagation();
+    
+    Taro.showModal({
+      title: '撤回确认',
+      content: '确定要撤回这个发布吗？撤回后将无法恢复',
+      success: (res) => {
+        if (res.confirm) {
+          updateItemStatus(itemId, '已下架');
+          Taro.showToast({
+            title: '已撤回',
+            icon: 'success'
+          });
+        }
+      }
+    });
+  };
+
+  const handleOffline = (itemId: string, e: any) => {
+    e.stopPropagation();
+    
+    Taro.showModal({
+      title: '下架确认',
+      content: '确定要下架这个物品吗？下架后将不再对外展示',
+      success: (res) => {
+        if (res.confirm) {
+          updateItemStatus(itemId, '已下架');
+          Taro.showToast({
+            title: '已下架',
+            icon: 'success'
+          });
+        }
+      }
+    });
+  };
+
+  const updateItemStatus = (itemId: string, newStatus: string) => {
+    try {
+      const storageItems = Taro.getStorageSync('myPublishedItems') || [];
+      const updatedItems = storageItems.map((item: Item) => {
+        if (item.id === itemId) {
+          return { ...item, status: newStatus };
+        }
+        return item;
+      });
+      
+      Taro.setStorageSync('myPublishedItems', updatedItems);
+      setMyPublished([...updatedItems]);
+      
+      const app = Taro.getApp();
+      app.globalData = app.globalData || {};
+      app.globalData.myPublishedItems = updatedItems;
+    } catch (e) {
+      console.error('[Profile] Failed to update item status:', e);
+    }
+  };
+
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
       '待审核': '等待审核',
@@ -83,8 +161,42 @@ const ProfilePage: React.FC = () => {
         return { color: '#576b95', backgroundColor: 'rgba(87, 107, 149, 0.1)' };
       case '已完成':
         return { color: '#07c160', backgroundColor: 'rgba(7, 193, 96, 0.1)' };
-      default:
+      case '已下架':
         return { color: '#999999', backgroundColor: 'rgba(153, 153, 153, 0.1)' };
+      default:
+        return { color: '#07c160', backgroundColor: 'rgba(7, 193, 96, 0.1)' };
+    }
+  };
+
+  const getStepText = (status: string) => {
+    switch (status) {
+      case '待审核':
+        return '等待平台审核';
+      case '已上架':
+        return '审核通过，等待领取';
+      case '已被预约':
+        return '已有人预约，等待交接';
+      case '已完成':
+        return '已完成捐赠';
+      case '已下架':
+        return '已下架';
+      default:
+        return '';
+    }
+  };
+
+  const getProgressStep = (status: string) => {
+    switch (status) {
+      case '待审核':
+        return 1;
+      case '已上架':
+        return 2;
+      case '已被预约':
+        return 3;
+      case '已完成':
+        return 4;
+      default:
+        return 0;
     }
   };
 
@@ -126,16 +238,38 @@ const ProfilePage: React.FC = () => {
       <View className={styles.section}>
         <View className={styles.sectionHeader}>
           <Text className={styles.sectionTitle}>我的发布</Text>
-          <Text 
-            className={styles.moreLink}
-            onClick={() => handleViewRecord('我的发布')}
-          >
-            查看全部 ›
-          </Text>
         </View>
-        {myPublished.length > 0 ? (
+
+        <View className={styles.tabBar}>
+          <View 
+            className={`${styles.tabItem} ${activeTab === 'pending' ? styles.active : ''}`}
+            onClick={() => setActiveTab('pending')}
+          >
+            待审核
+            {tabCounts.pending > 0 && (
+              <View className={styles.tabBadge}>{tabCounts.pending}</View>
+            )}
+          </View>
+          <View 
+            className={`${styles.tabItem} ${activeTab === 'available' ? styles.active : ''}`}
+            onClick={() => setActiveTab('available')}
+          >
+            待领取
+            {tabCounts.available > 0 && (
+              <View className={styles.tabBadge}>{tabCounts.available}</View>
+            )}
+          </View>
+          <View 
+            className={`${styles.tabItem} ${activeTab === 'completed' ? styles.active : ''}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            已完成
+          </View>
+        </View>
+
+        {filteredItems.length > 0 ? (
           <View className={styles.recordList}>
-            {myPublished.map((item: Item) => (
+            {filteredItems.map((item: Item) => (
               <View 
                 key={item.id} 
                 className={styles.recordCard}
@@ -150,10 +284,50 @@ const ProfilePage: React.FC = () => {
                   >
                     {getStatusText(item.status)}
                   </View>
+                  <View className={styles.recordProgress}>
+                    <View className={styles.progressSteps}>
+                      <View className={`${styles.step} ${getProgressStep(item.status) >= 1 ? styles.stepActive : ''}`}>
+                        <View className={styles.stepDot}></View>
+                        <Text className={styles.stepText}>发布</Text>
+                      </View>
+                      <View className={`${styles.stepLine} ${getProgressStep(item.status) >= 2 ? styles.stepLineActive : ''}`}></View>
+                      <View className={`${styles.step} ${getProgressStep(item.status) >= 2 ? styles.stepActive : ''}`}>
+                        <View className={styles.stepDot}></View>
+                        <Text className={styles.stepText}>审核</Text>
+                      </View>
+                      <View className={`${styles.stepLine} ${getProgressStep(item.status) >= 3 ? styles.stepLineActive : ''}`}></View>
+                      <View className={`${styles.step} ${getProgressStep(item.status) >= 3 ? styles.stepActive : ''}`}>
+                        <View className={styles.stepDot}></View>
+                        <Text className={styles.stepText}>预约</Text>
+                      </View>
+                      <View className={`${styles.stepLine} ${getProgressStep(item.status) >= 4 ? styles.stepLineActive : ''}`}></View>
+                      <View className={`${styles.step} ${getProgressStep(item.status) >= 4 ? styles.stepActive : ''}`}>
+                        <View className={styles.stepDot}></View>
+                        <Text className={styles.stepText}>完成</Text>
+                      </View>
+                    </View>
+                    <Text className={styles.stepHint}>{getStepText(item.status)}</Text>
+                  </View>
                 </View>
                 <View className={styles.recordMeta}>
                   <Text className={styles.recordTime}>{item.createTime}</Text>
                   <Text className={styles.recordPoint}>{item.pickPoint}</Text>
+                  {item.status === '待审核' && (
+                    <View 
+                      className={styles.actionBtn}
+                      onClick={(e) => handleRevoke(item.id, e)}
+                    >
+                      撤回
+                    </View>
+                  )}
+                  {(item.status === '已上架' || item.status === '已被预约') && (
+                    <View 
+                      className={styles.actionBtn}
+                      onClick={(e) => handleOffline(item.id, e)}
+                    >
+                      下架
+                    </View>
+                  )}
                 </View>
               </View>
             ))}
@@ -161,8 +335,14 @@ const ProfilePage: React.FC = () => {
         ) : (
           <View className={styles.emptyRecord}>
             <Text className={styles.emptyIcon}>📦</Text>
-            <Text className={styles.emptyText}>暂无发布记录</Text>
-            <Text className={styles.emptyHint}>点击底部"发布"开始您的第一次捐赠</Text>
+            <Text className={styles.emptyText}>
+              {activeTab === 'pending' && '暂无待审核的发布'}
+              {activeTab === 'available' && '暂无待领取的物品'}
+              {activeTab === 'completed' && '暂无已完成或已下架的记录'}
+            </Text>
+            {activeTab !== 'completed' && (
+              <Text className={styles.emptyHint}>去发布页发布您的爱心物资</Text>
+            )}
           </View>
         )}
       </View>

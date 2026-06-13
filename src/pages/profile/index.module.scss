@@ -102,6 +102,46 @@
   }
 }
 
+.tabBar {
+  display: flex;
+  background: white;
+  border-radius: $radius-lg;
+  padding: 8rpx;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  .tabItem {
+    flex: 1;
+    height: 72rpx;
+    @include flex-center;
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    border-radius: $radius-md;
+    transition: all $transition-base;
+    position: relative;
+
+    &.active {
+      background: $color-primary;
+      color: white;
+      font-weight: $font-weight-medium;
+    }
+
+    .tabBadge {
+      position: absolute;
+      top: 8rpx;
+      right: 16rpx;
+      min-width: 32rpx;
+      height: 32rpx;
+      background: $color-error;
+      border-radius: 16rpx;
+      @include flex-center;
+      font-size: 20rpx;
+      color: white;
+      padding: 0 8rpx;
+    }
+  }
+}
+
 .menuCard {
   background: white;
   border-radius: $radius-lg;
@@ -149,7 +189,7 @@
     margin-bottom: $spacing-sm;
     box-shadow: $shadow-card;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 
     .recordImage {
       width: 100rpx;
@@ -157,10 +197,12 @@
       border-radius: $radius-md;
       margin-right: $spacing-md;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
     .recordInfo {
       flex: 1;
+      min-width: 0;
 
       .recordTitle {
         font-size: $font-size-md;
@@ -176,24 +218,105 @@
         border-radius: $radius-xs;
         font-size: $font-size-xs;
         font-weight: $font-weight-medium;
-        margin-top: $spacing-xs;
+        margin-bottom: $spacing-sm;
+      }
+
+      .recordProgress {
+        margin-top: $spacing-sm;
+
+        .progressSteps {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: $spacing-xs;
+
+          .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .stepDot {
+              width: 16rpx;
+              height: 16rpx;
+              border-radius: 50%;
+              background: $color-border;
+              margin-bottom: 4rpx;
+              transition: all $transition-base;
+            }
+
+            .stepText {
+              font-size: 18rpx;
+              color: $color-text-tertiary;
+            }
+
+            &.stepActive {
+              .stepDot {
+                background: $color-primary;
+              }
+
+              .stepText {
+                color: $color-primary;
+                font-weight: $font-weight-medium;
+              }
+            }
+          }
+
+          .stepLine {
+            flex: 1;
+            height: 2rpx;
+            background: $color-border;
+            margin: 0 4rpx;
+            margin-bottom: 24rpx;
+            transition: all $transition-base;
+
+            &.stepLineActive {
+              background: $color-primary;
+            }
+          }
+        }
+
+        .stepHint {
+          font-size: $font-size-xs;
+          color: $color-text-secondary;
+          text-align: center;
+        }
       }
     }
 
     .recordMeta {
-      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-left: $spacing-sm;
+      flex-shrink: 0;
 
       .recordTime {
-        display: block;
         font-size: $font-size-xs;
         color: $color-text-tertiary;
         margin-bottom: 4rpx;
       }
 
       .recordPoint {
-        display: block;
         font-size: $font-size-xs;
         color: $color-text-tertiary;
+        margin-bottom: $spacing-sm;
+        max-width: 120rpx;
+        @include text-ellipsis;
+        text-align: right;
+      }
+
+      .actionBtn {
+        @include button-reset;
+        padding: 6rpx $spacing-md;
+        background: rgba($color-error, 0.1);
+        color: $color-error;
+        border-radius: $radius-button;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
+
+        &:active {
+          opacity: 0.8;
+        }
       }
     }
   }
